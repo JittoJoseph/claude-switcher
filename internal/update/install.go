@@ -79,10 +79,24 @@ func Asset(goos, goarch string) string {
 // Install replaces the executable exe with the latest release, after checking the download
 // against the release's checksums.txt.
 func Install(ctx context.Context, client *http.Client, exe string) error {
+	latest, err := Latest(ctx, client)
+	if err != nil {
+		return err
+	}
+	return InstallVersion(ctx, client, exe, latest)
+}
+
+// InstallVersion downloads both files from one immutable release tag.
+func InstallVersion(ctx context.Context, client *http.Client, exe, version string) error {
+	if _, _, ok := parse(version); !ok {
+		return errors.New("invalid release version")
+	}
+	base := Releases + "/download/v" + strings.TrimPrefix(version, "v")
+
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	asset := Asset(runtime.GOOS, runtime.GOARCH)
-	sums, err := get(ctx, client, Releases+"/latest/download/checksums.txt")
+	sums, err := get(ctx, client, base+"/checksums.txt")
 	if err != nil {
 		return err
 	}
@@ -90,7 +104,7 @@ func Install(ctx context.Context, client *http.Client, exe string) error {
 	if err != nil {
 		return err
 	}
-	archive, err := get(ctx, client, Releases+"/latest/download/"+asset)
+	archive, err := get(ctx, client, base+"/"+asset)
 	if err != nil {
 		return err
 	}

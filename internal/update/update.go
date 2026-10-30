@@ -39,7 +39,11 @@ func Latest(ctx context.Context, client *http.Client) (string, error) {
 	if resp.StatusCode/100 != 3 || !strings.Contains(loc, "/releases/tag/") {
 		return "", errors.New("no release found")
 	}
-	return strings.TrimPrefix(path.Base(loc), "v"), nil
+	version := strings.TrimPrefix(path.Base(loc), "v")
+	if _, _, ok := parse(version); !ok {
+		return "", errors.New("release tag is not a semantic version")
+	}
+	return version, nil
 }
 
 // Newer reports whether version a is newer than b, by semantic versioning ("v" prefix optional).
@@ -67,7 +71,10 @@ func Newer(a, b string) bool {
 }
 
 func parse(v string) (core [3]int, pre []string, ok bool) {
-	v, _, _ = strings.Cut(strings.TrimPrefix(v, "v"), "+")
+	v, build, hasBuild := strings.Cut(strings.TrimPrefix(v, "v"), "+")
+	if hasBuild && !identifiers(build, false) {
+		return core, nil, false
+	}
 	v, p, hasPre := strings.Cut(v, "-")
 	parts := strings.Split(v, ".")
 	if len(parts) != 3 {
@@ -75,12 +82,15 @@ func parse(v string) (core [3]int, pre []string, ok bool) {
 	}
 	for i, s := range parts {
 		n, err := strconv.Atoi(s)
-		if err != nil || n < 0 {
+		if err != nil || n < 0 || !digits(s) || len(s) > 1 && s[0] == '0' {
 			return core, nil, false
 		}
 		core[i] = n
 	}
 	if hasPre {
+		if !identifiers(p, true) {
+			return core, nil, false
+		}
 		pre = strings.Split(p, ".")
 	}
 	return core, pre, true
@@ -88,17 +98,47 @@ func parse(v string) (core [3]int, pre []string, ok bool) {
 
 // comparePre orders two prerelease identifiers: numbers by value and below words.
 func comparePre(a, b string) int {
-	na, errA := strconv.Atoi(a)
-	nb, errB := strconv.Atoi(b)
+	numericA, numericB := digits(a), digits(b)
 	switch {
-	case errA == nil && errB == nil:
-		return na - nb
-	case errA == nil:
+	case numericA && numericB:
+		if len(a) != len(b) {
+			if len(a) > len(b) {
+				return 1
+			}
+			return -1
+		}
+	case numericA:
 		return -1
-	case errB == nil:
+	case numericB:
 		return 1
 	}
 	return strings.Compare(a, b)
+}
+
+func digits(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func identifiers(s string, rejectLeadingZero bool) bool {
+	for _, part := range strings.Split(s, ".") {
+		if part == "" || rejectLeadingZero && digits(part) && len(part) > 1 && part[0] == '0' {
+			return false
+		}
+		for _, c := range part {
+			if c != '-' && !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // Disabled reports whether the environment turns update checks off: CLAUDE_SWITCHER_NO_UPDATE_CHECK,

@@ -30,10 +30,10 @@ func fakeGitHub(t *testing.T, tag string, archive []byte, sum string) *atomic.In
 		hits.Add(1)
 		http.Redirect(w, r, "/JittoJoseph/claude-switcher/releases/tag/"+tag, http.StatusFound)
 	})
-	mux.HandleFunc("/releases/latest/download/checksums.txt", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/releases/download/"+tag+"/checksums.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("0123  other.zip\n" + sum + "  " + asset + "\n"))
 	})
-	mux.HandleFunc("/releases/latest/download/"+asset, func(w http.ResponseWriter, r *http.Request) { w.Write(archive) })
+	mux.HandleFunc("/releases/download/"+tag+"/"+asset, func(w http.ResponseWriter, r *http.Request) { w.Write(archive) })
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 	old := Releases
@@ -230,5 +230,37 @@ func TestChecksumRejectsMalformedHash(t *testing.T) {
 		if _, err := checksum([]byte(sum+"  test.zip"), "test.zip"); err == nil {
 			t.Fatal("accepted malformed hash")
 		}
+	}
+}
+
+func TestInstallVersionUsesCheckedRelease(t *testing.T) {
+	archive := releaseArchive(t, []byte("checked build"))
+	sum := sha256.Sum256(archive)
+	hits := fakeGitHub(t, "v3.1.0", archive, hex.EncodeToString(sum[:]))
+	exe := filepath.Join(t.TempDir(), "claude-switcher.exe")
+	os.WriteFile(exe, []byte("old"), 0o755)
+	if err := InstallVersion(context.Background(), http.DefaultClient, exe, "3.1.0"); err != nil {
+		t.Fatal(err)
+	}
+	if hits.Load() != 0 {
+		t.Fatal("the installer resolved latest a second time")
+	}
+	got, err := os.ReadFile(exe)
+	if err != nil || string(got) != "checked build" {
+		t.Fatalf("%q %v", got, err)
+	}
+}
+
+func TestInvalidReleaseVersions(t *testing.T) {
+	for _, version := range []string{"01.2.3", "+1.2.3", "1.2.3-", "1.2.3-01", "1.2.3-a..b", "1.2.3+", "1.2.3+bad/path", "1.2.3+build+again"} {
+		if _, _, ok := parse(version); ok {
+			t.Fatalf("accepted %q", version)
+		}
+		if err := InstallVersion(context.Background(), http.DefaultClient, "unused", version); err == nil {
+			t.Fatalf("accepted download version %q", version)
+		}
+	}
+	if !Newer("1.0.0-9999999999999999999999999999", "1.0.0-999999999999999999999999999") {
+		t.Fatal("large prerelease numbers compared as words")
 	}
 }

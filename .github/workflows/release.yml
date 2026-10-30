@@ -1,14 +1,20 @@
 name: release
 on:
-  push:
-    tags: ["v*"]
+  workflow_call:
+  workflow_dispatch:
 permissions:
   contents: write
   id-token: write
   attestations: write
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
 jobs:
   release:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -16,32 +22,89 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+      - name: Validate a manual release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          go vet ./...
+          go test ./...
+      - name: Select the next patch release
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --tags
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "A newer main commit exists. That commit will publish after CI passes."
+            exit 0
+          fi
+          tag=$(git tag --points-at HEAD | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+          if [ -z "$tag" ]; then
+            latest=$(git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+            latest=${latest:-v3.0.0}
+            prefix=${latest%.*}
+            patch=${latest##*.}
+            tag="$prefix.$((10#$patch + 1))"
+            git tag "$tag"
+            git push origin "$tag"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --json isDraft --jq '.isDraft' > release-state.txt 2>/dev/null; then
+            if [ "$(cat release-state.txt)" = false ]; then
+              echo "$tag already exists. Rechecking its installers."
+              exit 0
+            fi
+            # Retry only an incomplete draft; never remove a published release.
+            gh release delete "$tag" --yes
+          fi
+          rm -f release-state.txt
+          echo "publish=true" >> "$GITHUB_OUTPUT"
       - uses: goreleaser/goreleaser-action@v6
+        if: steps.version.outputs.publish == 'true'
         with:
-          distribution: goreleaser
           version: "~> v2"
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/attest-build-provenance@v2
+        if: steps.version.outputs.publish == 'true'
         with:
           subject-checksums: ./dist/checksums.txt
 
   smoke:
     needs: release
-    if: ${{ !contains(github.ref_name, '-') }}
+    if: needs.release.outputs.tag != ''
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      RELEASE_TAG: ${{ needs.release.outputs.tag }}
     steps:
-      - if: runner.os == 'Windows'
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+      - name: Install the published release on Windows
+        if: runner.os == 'Windows'
         shell: powershell
         run: |
+          ./install.ps1 -Version $env:RELEASE_TAG
+          $expected = $env:RELEASE_TAG.Substring(1)
+          if ((claude-switcher version --short) -ne $expected) { throw 'Installed version mismatch' }
+          # Exercise the exact README command, including its latest-release resolution.
           irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1 | iex
-          & "$env:LOCALAPPDATA\Programs\claude-switcher\claude-switcher.exe" version
-      - if: runner.os != 'Windows'
+          if ((claude-switcher version --short) -ne $expected) { throw 'Latest version mismatch' }
+          ./install.ps1 -Uninstall
+          if (Test-Path "$env:LOCALAPPDATA\Programs\claude-switcher\claude-switcher.exe") { throw 'Uninstall left the executable' }
+      - name: Install the published release on macOS and Linux
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
+          set -euo pipefail
+          CLAUDE_SWITCHER_VERSION="$RELEASE_TAG" sh ./install.sh
+          test "$(~/.local/bin/claude-switcher version --short)" = "${RELEASE_TAG#v}"
           curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | sh
-          ~/.local/bin/claude-switcher version --short | grep "${GITHUB_REF_NAME#v}"
+          test "$(~/.local/bin/claude-switcher version --short)" = "${RELEASE_TAG#v}"

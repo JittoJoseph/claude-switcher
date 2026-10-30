@@ -116,7 +116,7 @@ func (a *app) update(cmd *cobra.Command, _ []string) error {
 		return a.result(map[string]any{"current": current, "latest": latest, "updated": false}, "cli.update.latest", "version", current)
 	}
 	err = a.spin(ctx, func() string { return i18n.T("cli.update.downloading", "version", latest) }, func(ctx context.Context) error {
-		return update.Install(ctx, http.DefaultClient, exe)
+		return update.InstallVersion(ctx, http.DefaultClient, exe, latest)
 	})
 	if err != nil {
 		return err

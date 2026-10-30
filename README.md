@@ -1,185 +1,248 @@
-<p align="center">
-  <img src="./assets/readme/hero.png" width="100%" alt="Claude Switcher: three saved Claude accounts shown as cards, the one in use marked active">
-</p>
+# Claude Switcher
 
-<h1 align="center">Claude Switcher</h1>
+Switch Claude Desktop between saved accounts, and manage their local Claude Code chats.
+Use a primary account most of the time and a backup account when you need it.
 
-<p align="center">
-  Switch Claude Desktop between your accounts without signing in again,<br>
-  and keep every Claude Code chat with you, on Windows, macOS and Linux.
-</p>
+[![Release](https://img.shields.io/github/v/release/JittoJoseph/claude-switcher)](https://github.com/JittoJoseph/claude-switcher/releases/latest)
+[![CI](https://github.com/JittoJoseph/claude-switcher/actions/workflows/ci.yml/badge.svg)](https://github.com/JittoJoseph/claude-switcher/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<p align="center">
-  <a href="https://github.com/JittoJoseph/claude-switcher/releases/latest"><img src="https://img.shields.io/github/v/release/JittoJoseph/claude-switcher?style=flat-square&color=a8b2ff&labelColor=303345&label=release" alt="Latest release"></a>
-  <a href="https://github.com/JittoJoseph/claude-switcher/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/JittoJoseph/claude-switcher/ci.yml?branch=main&style=flat-square&color=a8b2ff&labelColor=303345&label=tests" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-a8b2ff?style=flat-square&labelColor=303345" alt="Windows, macOS and Linux">
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-a8b2ff?style=flat-square&labelColor=303345" alt="MIT license"></a>
-</p>
+![Claude Switcher account screen](assets/readme/hero.png)
 
-Claude Desktop is signed into one account at a time. Switching means logging out and back in, and every account keeps its own Code sidebar, so the chats you had a minute ago look gone.
+## Install and open
 
-**Claude Switcher** saves each login once and switches between them in seconds. It shows the Code chats of every account in one place, copies or moves them to whichever account you are using, brings back chats that fell out of the sidebar, and undoes any of it. It is a single binary that only touches files on your computer.
+No Go, Git, Node.js, or administrator account is needed for a release installation.
+Claude Desktop must already be installed. Before you save its profile, sign in to your primary account in Desktop.
 
-## This fork
-
-This fork keeps the original MIT license and Nyxon credits. Its installers and updater use releases from `JittoJoseph/claude-switcher`.
-The Go module also uses this fork. Release installers need a published release in this repository.
-
-For a local build, use:
-
-```powershell
-git clone https://github.com/JittoJoseph/claude-switcher.git
-cd claude-switcher
-go build -o bin/claude-switcher.exe ./cmd/claude-switcher
-.\bin\claude-switcher.exe doctor
-```
-
-On macOS or Linux, omit `.exe` from the build output. Run `./bin/claude-switcher doctor`.
-
-Current Windows versions use `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc`.
-The switcher also supports the older MSIX container and standalone data folders.
-A migrated package appears once, with its current data folder and its MSIX launch identity.
-
-Before the first account switch, back up the Desktop data folder and `~/.claude/projects`.
-Quit Claude Desktop from its tray menu before each login operation.
-The switcher saves a complete login snapshot before it replaces the previous snapshot.
-If a restore or clear operation fails, the switcher attempts to restore the original login.
-If that rollback fails, the error gives the recovery folder path.
-
-Operations that share a vault use an operating-system lock. A second mutation fails while the first operation holds the lock.
-Login replacement spans several files and cannot survive every power loss as one atomic operation.
-For an unrecognized `--data-dir`, process checks and automatic launch remain disabled.
-Recognized data folders retain those protections.
-
-## Install
-
-**Windows** (PowerShell)
+### Windows: copy into PowerShell
 
 ```powershell
 irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1 | iex
+claude-switcher
 ```
 
-**macOS and Linux**
+The installer supports Windows PowerShell 5.1 and PowerShell 7 on x64 and ARM64 Windows.
+It installs for your Windows user, updates PATH in the current terminal, and creates a Start menu shortcut.
+You can also open **Claude Switcher** from the Start menu.
+
+### macOS and Linux
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | sh
+~/.local/bin/claude-switcher
 ```
 
-Both scripts download the latest release, check it against the published SHA-256 checksums, and install it for your user only, with no admin rights. Then run `claude-switcher`. You can also download an archive from [Releases](https://github.com/JittoJoseph/claude-switcher/releases/latest), or build it with `go install github.com/JittoJoseph/claude-switcher/v3/cmd/claude-switcher@latest`.
+The installer supports Intel and Apple silicon Macs, plus x64 and ARM64 Linux.
+It installs to `~/.local/bin`. It prints a PATH command when your shell does not include that folder.
+Linux Desktop process detection can vary between distributions and Desktop packages.
 
-Already on v2? Run the same line. Your saved logins in `~/.claude-instances` carry over unchanged.
+Both installers resolve one release version, verify its SHA-256 checksum, and check the executable before replacement.
+They preserve the previous executable if download or validation fails.
+You can inspect [install.ps1](install.ps1) or [install.sh](install.sh) before you run them.
+Archives and checksums are also available on the [release page](https://github.com/JittoJoseph/claude-switcher/releases/latest).
 
-## Every account, every chat
+## Save your primary and backup accounts
 
-<p align="center">
-  <img src="./assets/readme/chats.png" width="100%" alt="The Chats tab: chats from every account in one searchable list, with a preview of the selected chat">
-</p>
+**Account switching does not copy Code chats automatically.** Each account keeps its own sidebar.
+Use the **Chats** tab to copy the chats that you want in another account.
+The switcher does not combine subscriptions or change account usage limits.
 
-The Chats tab lists the Code chats of every account together. Start typing to search titles and projects, open a preview of any chat, tick chats with Space, and **copy** them (they show up in both accounts) or **move** them. When the other account already has a chat, the newer copy wins, so a chat you kept working on in one account carries over. Export any chat as a web page or Markdown.
+Before the first switch, back up the Desktop data folder and `~/.claude/projects`.
+Saved profiles contain authentication data. Keep `~/.claude-instances` private and out of cloud sync.
 
-**Lost** shows conversations whose history is still on disk but that no sidebar lists, after an account switch, a reinstall or an update. Recover them and they are back in Claude Desktop with their title, project and dates.
+1. In Claude Desktop, sign in to your primary account.
+2. Open `claude-switcher` and save that login as `primary` in **Accounts**.
+3. Select **Add account** and name the new profile `backup`.
+4. When Desktop opens signed out, sign in to your backup account.
+5. Return to the switcher and save the backup login.
+6. Select `primary` to return to your main account.
 
-Chat titles in Persian, Arabic or Hebrew display correctly, letters joined and right to left, even in terminals that cannot lay out right-to-left text themselves, such as Windows Terminal.
+On Windows, the switcher asks you to quit Desktop from its tray menu before a login operation.
+Closing the Desktop window does not quit the app. The switcher waits until Desktop is closed.
+It then changes the login files and reopens Desktop.
 
-## What it does
+For the same setup from a terminal:
 
-| | |
+```powershell
+# Sign in to the primary account in Desktop, then quit Desktop from its tray menu.
+claude-switcher save primary
+claude-switcher add backup
+
+# Sign in to the backup account in Desktop, then quit Desktop from its tray menu.
+claude-switcher save backup
+claude-switcher switch primary
+```
+
+Later, use **Accounts** or these commands:
+
+```powershell
+claude-switcher switch backup
+claude-switcher switch primary
+```
+
+Claude can expire or revoke a saved login. If that happens, sign in again. Then save the profile again.
+Avoid Desktop's **Log out** action between switches because it can revoke the saved session.
+
+## Manage Code chats
+
+![Chats from multiple accounts with a preview](assets/readme/chats.png)
+
+| Action | Result |
 | --- | --- |
-| **Switch accounts** | Swap to another saved login and reopen Claude Desktop. No password, no email code. |
-| **Add an account** | Saves the login in use, then opens Desktop signed out so you can add the next one, without ever pressing Log out. |
-| **Copy, move, merge** | Chat by chat between any two accounts, or bring every chat into one account. Newest copy wins. |
-| **Recover** | Rebuilds sidebar entries for chats that only exist as history on disk. |
-| **Undo** | Every chat change is journaled with backups, so undo puts back every byte. |
-| **Usage** | Tokens by model, by day and by project, counted from your local transcripts. |
-| **Doctor** | Checks the install, the signed-in account and every chat list, and warns about settings that delete history. |
-| **Scriptable** | Every action is also a command, with `--json` output and stable exit codes. |
+| Copy | Add the chat to another account's sidebar. Keep the source record. |
+| Move | Transfer the sidebar record to another account. Remove the source record. |
+| Merge | Copy the newest records from other sidebars into one sidebar. |
+| Recover | Restore sidebar records for conversations that remain on disk. |
+| Undo | Restore the files from the most recent chat-change journal. |
+| Export | Save a conversation as Markdown or HTML. |
 
-<p align="center">
-  <img src="./assets/readme/usage.png" width="100%" alt="The Usage tab: tokens by model, a 30-day chart and the top projects">
-</p>
+The newest sidebar record wins when two accounts have the same chat.
+The switcher reads transcript history without rewriting it.
+**Lost** lists transcripts that no known sidebar references. Review the list before recovery.
+Terminal-only Claude Code conversations can also appear there.
 
-## How it works
+This tool manages local **Code-tab** chats. It does not transfer cloud Chat conversations or manage CLI authentication.
+Chat titles support Persian, Arabic, Hebrew, and other languages.
+The **Usage** tab counts tokens from local transcripts. It does not show the subscription's remaining weekly allowance.
 
-Claude Desktop keeps three things on disk, and Claude Switcher treats each one differently.
+## Diagnose a setup
 
-<p align="center">
-  <img src="./assets/readme/how-it-works.svg" width="100%" alt="Claude Desktop keeps login files, one chat list per account, and a shared chat history. Switching swaps the login files, chat moves edit the per-account lists, and recovery rebuilds entries from the history, which is never modified">
-</p>
+```powershell
+claude-switcher doctor
+claude-switcher list
+```
 
-- **Switching** copies Desktop's login files (`config.json`, cookies, local storage, a few MB) between its data folder and `~/.claude-instances/<profile>`. Desktop has to be closed for this, because it rewrites those files when it quits: Claude Switcher asks it to quit (on Windows you quit it from the tray icon), waits, swaps, and opens it again.
-- **Chats** live in two places. The history is one file per conversation, shared by every account. The sidebar is a small record per chat, kept separately for each account. Copying a chat copies that record; the history is only ever read.
-- **Safety.** Before saving over a login it checks that Desktop is still signed into that same account, and refuses otherwise. Every chat change is journaled with backups first. Records are written the way Desktop expects them, and fields it does not know are kept byte for byte. The only network request is the optional daily check for a new release.
-
-| | Windows | macOS | Linux |
-| --- | --- | --- | --- |
-| Desktop data | `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc` (legacy MSIX and `%APPDATA%\Claude` also supported) | `~/Library/Application Support/Claude` | `~/.config/Claude` |
-| Chat history | `%USERPROFILE%\.claude\projects` | `~/.claude/projects` | `~/.claude/projects` |
-| Saved logins | `%USERPROFILE%\.claude-instances` | `~/.claude-instances` | `~/.claude-instances` |
-
-<details>
-<summary><b>All commands</b></summary>
+On current Windows Desktop versions, the active data folder is usually:
 
 ```text
-claude-switcher                                 open the app
-claude-switcher list                            saved accounts and chat lists
-claude-switcher switch <profile>                switch Claude Desktop to a saved account
-claude-switcher save <name>                     save the account Desktop is signed into
-claude-switcher add <name>                      get Desktop ready to sign into another account
-claude-switcher rename <old> <new>              rename a saved account
-claude-switcher remove <name>                   forget a saved account; its chats stay
-
-claude-switcher chats [list] [--lost]           chats, newest first, or the ones to recover
-claude-switcher copy --from A --to B <ids...>   copy chats to another account
-claude-switcher move --from A --to B <ids...>   move chats to another account
-claude-switcher merge --to <list>               bring every chat into one account
-claude-switcher rescue [--to <list>] [--all]    recover chats no sidebar shows
-claude-switcher export <id> [--format md]       save a chat as a web page or Markdown
-claude-switcher undo                            undo the last change
-claude-switcher history                         every change made
-
-claude-switcher usage                           tokens by model and project
-claude-switcher doctor                          check the setup
-claude-switcher config [get|set|list]           settings
-claude-switcher update                          update to the latest release
-claude-switcher version                         version and build details
+%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc
 ```
 
-Global flags: `--json`, `--yes`, `--no-launch` (leave Desktop closed), `--theme`, `--rtl auto|app|terminal|off` (how right-to-left chat titles are drawn). Exit codes: 0 done, 1 error, 2 wrong usage, 3 refused by a safety check, 4 not found, 5 cancelled.
+Older MSIX and standalone installations are also supported.
+The switcher prefers the migrated folder for a package and retains its MSIX launch identity.
+A settings-only folder left by an older installer does not count as another signed-in installation.
 
-</details>
+| Symptom | Next step |
+| --- | --- |
+| No saved profiles | Save the account that is signed in to Desktop. |
+| Desktop is still running | Quit it from the tray menu and let the switcher continue. |
+| Chats disappear after a switch | Use **Chats** to copy records into the other account's sidebar. |
+| Several organizations match a profile | Select the destination list in the app, or use an account/org reference in the CLI. |
+| A saved login no longer works | Sign in again in Desktop and save that profile again. |
+| An update cannot replace the executable | Close other switcher instances and retry. |
 
-<details>
-<summary><b>Questions</b></summary>
+## Update or uninstall
 
-**Does it log me out of anything?** No. It never presses Log out and never signs in for you. Logging out can end a saved login, which is why *Add an account* opens Desktop signed out instead.
+To update, close other switcher instances and run:
 
-**Where are my logins stored, and is that safe?** In `~/.claude-instances`, as copies of the same files Desktop keeps in its own folder, readable only by your user. The cookies in them are encrypted with a key that stays with your user account on this computer, so a copy is useless elsewhere. Do not share or sync that folder.
+```powershell
+claude-switcher update
+```
 
-**Can I use it with a terminal-only Claude Code?** Chats you ran in a terminal show up under Lost, and you can recover them into any account's sidebar.
+You can also repeat the installation command. Profiles and Claude chats remain in place.
 
-**Why do Persian titles look right here but not in other tools?** Windows Terminal and most terminals do not join Arabic-script letters or lay out right-to-left text. Claude Switcher does both itself when the terminal cannot, and leaves the text alone in terminals that can (macOS Terminal, iTerm2 3.7+, Konsole). If a title ever looks mirrored, change *Right-to-left text* in Settings.
+To uninstall on Windows:
 
-</details>
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1))) -Uninstall
+```
 
-## Build from source
+The uninstaller removes the executable, its PATH entry, and its shortcut.
+It preserves saved profiles, Claude data, and unrelated files in the installation folder.
+
+To uninstall on macOS or Linux:
 
 ```sh
-git clone https://github.com/JittoJoseph/claude-switcher
-cd claude-switcher
-go test ./...
-go run ./cmd/claude-switcher
+rm -f ~/.local/bin/claude-switcher
 ```
 
-`go run ./tools/demodata -out demo` writes a made-up setup (three accounts and a few dozen chats) to try everything without touching your real Claude folders, and prints the flags that point Claude Switcher at it. See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for how the code is organised.
+For a specific release on Windows:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1))) -Version v3.0.1
+```
+
+For a specific release on macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | CLAUDE_SWITCHER_VERSION=v3.0.1 sh
+```
+
+## Commands
+
+Run `claude-switcher --help` or append `--help` to a command for its arguments.
+Run `claude-switcher` without arguments to open the terminal app.
+
+| Command | Purpose |
+| --- | --- |
+| `list` | Show profiles, accounts, and chat lists. |
+| `save <name>` | Save Desktop's current login. |
+| `add <name>` | Save the current profile and prepare another account. |
+| `switch <profile>` | Restore a saved login and reopen Desktop. |
+| `rename <old> <new>` | Rename a profile. |
+| `remove <name>` | Remove a saved profile. Keep its chats. |
+| `chats [list] [--lost]` | List chats or recoverable conversations. |
+| `copy --from A --to B <ids...>` | Copy sidebar records. |
+| `move --from A --to B <ids...>` | Move sidebar records. |
+| `merge --to <list>` | Merge sidebar records into a list. |
+| `rescue [--to <list>] [--all]` | Rebuild missing sidebar records. |
+| `export <id> [--format md]` | Export a conversation. |
+| `undo` / `history` | Restore a chat change or inspect its journal. |
+| `usage` / `doctor` | Inspect local usage or diagnose the setup. |
+| `config` / `version` / `update` | Manage preferences or the installed version. |
+
+Common flags include `--json`, `--yes`, `--no-launch`, `--theme`, and `--rtl`.
+Exit codes: 0 means success, 1 means an error, and 2 means invalid arguments.
+Codes 3, 4, and 5 mean a safety refusal, missing data, and cancellation.
+
+## Data and failure handling
+
+| Data | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| Desktop data | `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc` | `~/Library/Application Support/Claude` | `~/.config/Claude` |
+| Code transcripts | `%USERPROFILE%\.claude\projects` | `~/.claude/projects` | `~/.claude/projects` |
+| Saved profiles | `%USERPROFILE%\.claude-instances` | `~/.claude-instances` | `~/.claude-instances` |
+
+Login saves finish a staged copy before replacement. Failed login restores and clears attempt to restore the original files.
+If rollback fails, the error identifies the recovery folder.
+An operating-system lock prevents overlapping mutations in the same profile vault.
+Metadata writes use temporary files, and chat changes have journals and backups.
+
+Login replacement spans several files. It cannot guarantee a complete transaction across a power loss.
+For an unrecognized custom `--data-dir`, automatic process checks and app launching are disabled.
+Normal detected installations and recognized folder overrides retain those checks.
+
+Account and chat operations use local files. Update checks and explicit updates contact GitHub.
+The switcher does not upload your profiles or conversations.
+
+## Build and release
+
+Source builds require Go 1.26.7 or later.
+
+```sh
+git clone https://github.com/JittoJoseph/claude-switcher.git
+cd claude-switcher
+go test ./...
+go build -o bin/claude-switcher ./cmd/claude-switcher
+```
+
+On Windows, use `bin/claude-switcher.exe` for the output name.
+`go run ./tools/demodata -out demo` creates sample accounts and conversations for a local demo.
+See [the architecture guide](docs/ARCHITECTURE.md) for the package layout.
+
+Successful CI on `main` automatically calls the release workflow.
+The workflow creates the next patch tag, starting at `v3.0.1` for this fork.
+It builds release archives and Linux packages, publishes checksums, and adds build attestations.
+It then installs the published release on Windows, macOS, and Linux, including the README's installation commands.
+Pull requests and failed CI runs do not publish releases. An older commit does not release after `main` advances.
+A rerun reuses an existing tag and does not replace a published release.
+Maintainers can retry the release workflow from the repository's **Actions** tab.
 
 ## Credits
 
-Claude Switcher started as a fork of **[claude-profile-switcher](https://github.com/NeezerGu/claude-profile-switcher) by [@NeezerGu](https://github.com/NeezerGu)**, which worked out which of Desktop's files make up a login and how to swap them safely around the Cowork VM. Thank you for building it and sharing it under MIT; this project would not exist without it.
+This repository is a fork of [Nyxon's Claude Switcher](https://github.com/nyxon-tech/claude-switcher).
+The original project started from [claude-profile-switcher](https://github.com/NeezerGu/claude-profile-switcher) by [@NeezerGu](https://github.com/NeezerGu).
+The original MIT license and author credits remain in place.
 
-Built with [Bubble Tea, Lip Gloss and Fang](https://github.com/charmbracelet) by Charm.
-
-Unofficial. Not affiliated with or endorsed by Anthropic. Claude is a trademark of Anthropic.
-
-<p align="center">
-  <a href="https://github.com/nyxon-tech"><img src="./assets/readme/made-by-nyxon.svg" width="250" alt="Made by Nyxon"></a>
-</p>
+Built with [Bubble Tea, Lip Gloss, and Fang](https://github.com/charmbracelet) by Charm.
+Unofficial. Not affiliated with or endorsed by Anthropic.

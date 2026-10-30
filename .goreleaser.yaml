@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# Release: push a tag like v3.0.0; .github/workflows/release.yml runs this.
+# Release: CI on main calls release.yml, which creates the next patch tag.
 # Local dry run: goreleaser release --snapshot --clean
 version: 2
 project_name: claude-switcher
