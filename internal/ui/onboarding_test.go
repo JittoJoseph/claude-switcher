@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 	"github.com/charmbracelet/x/exp/golden"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
 )
 
 // firstRun is the fixture before the welcome was seen, with the signed-in account (work) not

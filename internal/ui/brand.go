@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
 )
 
 // The brand is typographic: the product's name on a pill of the accent colour or spaced out in

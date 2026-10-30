@@ -77,6 +77,8 @@ func TestValidName(t *testing.T) {
 		{"LPT9", false},
 		{"COM10", true},
 		{"console", true},
+		{"cache", false},
+		{"CACHE", false},
 	}
 	for _, tt := range tests {
 		if got := ValidName(tt.name); got != tt.ok {
@@ -358,5 +360,38 @@ func must(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestLoginMissingSourcePreservesDestination(t *testing.T) {
+	v := Vault{Dir: t.TempDir()}
+	data := filepath.Join(t.TempDir(), "Claude")
+	fillLogin(t, data, "live")
+	fillLogin(t, filepath.Join(v.Dir, "work"), "saved")
+	before := login(t, data)
+	saved := hash(t, filepath.Join(v.Dir, "work"))
+	must(t, os.Remove(filepath.Join(v.Dir, "work", "config.json")))
+	if v.RestoreLogin("work", data, items) == nil {
+		t.Fatal("missing saved config must fail")
+	}
+	if login(t, data) != before {
+		t.Fatal("missing source erased live login")
+	}
+	fillLogin(t, filepath.Join(v.Dir, "work"), "saved")
+	must(t, os.Remove(filepath.Join(data, "config.json")))
+	if v.SaveLogin("work", data, items) == nil {
+		t.Fatal("missing live config must fail")
+	}
+	if hash(t, filepath.Join(v.Dir, "work")) != saved {
+		t.Fatal("missing source erased saved login")
+	}
+}
+
+func TestLoginStorageRejectsTraversal(t *testing.T) {
+	v := Vault{Dir: t.TempDir()}
+	for _, name := range []string{"../work", "_journal", "cache"} {
+		if v.SaveLogin(name, t.TempDir(), items) == nil || v.RestoreLogin(name, t.TempDir(), items) == nil {
+			t.Fatalf("unsafe name accepted: %q", name)
+		}
 	}
 }

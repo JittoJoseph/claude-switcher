@@ -3,7 +3,7 @@ package ui
 import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
 )
 
 // Keys are what applies right now: the pager's, the search field's, or the list's, with the

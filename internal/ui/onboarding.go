@@ -7,8 +7,8 @@ import (
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
 )
 
 // onboarding is the welcome, on the first run and from Settings. It covers the whole window:

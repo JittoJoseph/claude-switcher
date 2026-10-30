@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/platform"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/platform"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // Status is the whole picture: which account Desktop uses, the saved profiles and the chat lists.

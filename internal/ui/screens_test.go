@@ -13,8 +13,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/clipperhouse/uax29/v2/graphemes"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 )
 
 // TestDocScreens renders the README screenshots from the real app on the made-up setup:

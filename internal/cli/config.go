@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // setting is one key of config: its name on the command line and in JSON, the values it takes

@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 )
 
 // Options configure the full-screen app. The CLI fills them from flags and saved settings.

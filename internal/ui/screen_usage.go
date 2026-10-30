@@ -10,9 +10,9 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
 )
 
 // usageScreen is the token dashboard: tiles with the totals, tokens by model, output tokens per

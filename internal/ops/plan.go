@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // Kinds of change, also the action names in the journal (v2 used the same).
@@ -156,11 +156,12 @@ func decide(last time.Time, target string) Action {
 	if _, err := os.Lstat(target); errors.Is(err, fs.ErrNotExist) {
 		return Create
 	}
-	var have time.Time // an unreadable target counts as oldest, so it is backed up and replaced
-	if c, err := claude.ReadCard(target); err == nil {
-		have = lastOf(c)
+	c, err := claude.ReadCard(target)
+	if err != nil {
+		// Preserve unreadable bytes in the journal before replacement.
+		return Update
 	}
-	if last.After(have) {
+	if last.After(lastOf(c)) {
 		return Update
 	}
 	return SkipNewer
@@ -169,6 +170,12 @@ func decide(last time.Time, target string) Action {
 // Apply carries out a plan, journaled so Undo restores every byte. Each step is decided again
 // against the files as they are now, so a stale plan never writes over a newer card.
 func (e *Env) Apply(p Plan) (Result, error) {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return Result{}, err
+	}
+	defer unlock()
+
 	var res Result
 	if err := e.closed(); err != nil {
 		return res, err

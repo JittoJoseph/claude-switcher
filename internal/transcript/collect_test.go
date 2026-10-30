@@ -110,3 +110,22 @@ func asJSON(t *testing.T, v any) string {
 	}
 	return string(b)
 }
+
+func TestCollectSpacedJSONAndAnonymousMessages(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "project", sid+".jsonl")
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	data := `{"type": "assistant", "timestamp":"2026-09-01T10:00:00Z", "message": {"model":"claude-opus-5", "usage":{"input_tokens":7}}}`
+	if err := os.WriteFile(path, []byte(data+"\n"+data+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	stats, err := Collect(root, "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := stats.ByModel["claude-opus-5"]; got.Messages != 2 || got.Input != 14 {
+		t.Fatalf("%+v", got)
+	}
+}

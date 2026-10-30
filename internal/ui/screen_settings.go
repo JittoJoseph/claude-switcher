@@ -10,9 +10,9 @@ import (
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // settingsScreen changes the saved settings, each one the moment it is picked.

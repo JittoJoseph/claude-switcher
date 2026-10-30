@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
 )
 
 // Chat is one card in a chat list.

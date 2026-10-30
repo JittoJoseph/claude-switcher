@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 func lost(n int) string { return "20000000-0000-4000-8000-00000000000" + string(rune('0'+n)) }

@@ -11,11 +11,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
 )
 
 // chatsDebounce is how long the cursor rests on a chat before its transcript is read, so

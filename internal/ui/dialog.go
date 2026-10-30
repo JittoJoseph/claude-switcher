@@ -7,8 +7,8 @@ import (
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
 )
 
 // dialog is the one modal box: a confirmation, an alert, a text field or a choice list. Buttons

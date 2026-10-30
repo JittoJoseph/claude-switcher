@@ -28,7 +28,7 @@ func fakeGitHub(t *testing.T, tag string, archive []byte, sum string) *atomic.In
 	mux := http.NewServeMux()
 	mux.HandleFunc("/releases/latest", func(w http.ResponseWriter, r *http.Request) {
 		hits.Add(1)
-		http.Redirect(w, r, "/nyxon-tech/claude-switcher/releases/tag/"+tag, http.StatusFound)
+		http.Redirect(w, r, "/JittoJoseph/claude-switcher/releases/tag/"+tag, http.StatusFound)
 	})
 	mux.HandleFunc("/releases/latest/download/checksums.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("0123  other.zip\n" + sum + "  " + asset + "\n"))
@@ -138,7 +138,8 @@ func TestMethodOf(t *testing.T) {
 			t.Errorf("MethodOf(%s) = %s, want %s", exe, got, want)
 		}
 	}
-	if Winget.Upgrade() != "winget upgrade Nyxon.ClaudeSwitcher" || Installer.Upgrade() != "" {
+	if Winget.Upgrade() != "" || Brew.Upgrade() != "" || Scoop.Upgrade() != "" || Installer.Upgrade() != "" ||
+		Go.Upgrade() != "go install github.com/JittoJoseph/claude-switcher/v3/cmd/claude-switcher@latest" {
 		t.Error("upgrade commands")
 	}
 }
@@ -212,5 +213,22 @@ func TestInstallRefusesABadChecksum(t *testing.T) {
 	}
 	if got, _ := os.ReadFile(exe); string(got) != "old build" {
 		t.Errorf("a bad download must leave the exe alone, got %q", got)
+	}
+}
+
+func TestReadLimitedRejectsOverflow(t *testing.T) {
+	if _, err := readLimited(strings.NewReader("12345"), 4); err == nil {
+		t.Fatal("accepted oversized input")
+	}
+	if data, err := readLimited(strings.NewReader("1234"), 4); err != nil || string(data) != "1234" {
+		t.Fatalf("%q %v", data, err)
+	}
+}
+
+func TestChecksumRejectsMalformedHash(t *testing.T) {
+	for _, sum := range []string{"1234", strings.Repeat("z", 64)} {
+		if _, err := checksum([]byte(sum+"  test.zip"), "test.zip"); err == nil {
+			t.Fatal("accepted malformed hash")
+		}
 	}
 }

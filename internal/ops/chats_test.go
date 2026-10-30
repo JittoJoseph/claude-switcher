@@ -256,3 +256,23 @@ func TestUndoWithNothingToUndo(t *testing.T) {
 	_, err := f.Undo()
 	wantCode(t, err, NothingToUndo)
 }
+
+func TestMoveUndatedChatReplacesCorruptTarget(t *testing.T) {
+	f := newFixture(t)
+	source := f.card(work, "undated", "", "Keep this", 0, "")
+	target := f.card(pers, "undated", "", "old", 0, "")
+	f.put(target, "corrupt")
+	plan, err := f.PlanTransfer(f.list(work), f.list(pers), []string{"undated"}, true)
+	must(t, err)
+	before := f.read(source)
+	_, err = f.Apply(plan)
+	must(t, err)
+	if f.read(target) != before || f.exists(source) {
+		t.Fatal("move lost undated chat")
+	}
+	_, err = f.Undo()
+	must(t, err)
+	if f.read(source) != before || f.read(target) != "corrupt" {
+		t.Fatal("undo did not restore both files")
+	}
+}

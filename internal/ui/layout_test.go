@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"charm.land/lipgloss/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
 )
 
 func TestLayoutPlaces(t *testing.T) {

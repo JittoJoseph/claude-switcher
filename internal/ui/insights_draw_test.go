@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
 )
 
 // The chart and its columns stay inside any width, down to none at all.

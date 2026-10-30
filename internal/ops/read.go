@@ -4,7 +4,7 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 // Preview reads a chat's transcript for the preview pane: its metadata and last 20 messages.

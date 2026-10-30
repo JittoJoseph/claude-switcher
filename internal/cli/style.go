@@ -9,7 +9,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/term"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ui"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ui"
 )
 
 // themeNames are the themes the command line takes; settings.json keeps the first two as

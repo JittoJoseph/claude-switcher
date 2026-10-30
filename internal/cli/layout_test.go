@@ -8,7 +8,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 )
 
 // TestLayoutFitsTheWindow checks what a terminal shows: no line is wider than the window, not

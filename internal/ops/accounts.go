@@ -1,17 +1,21 @@
 package ops
 
 import (
-	"os"
-	"path/filepath"
 	"slices"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // Save stores the login Desktop is signed into as profile name and makes it the profile in use.
 // A profile of that name saved from another account is only replaced when replace is set;
 // otherwise Save refuses with other-account, so the caller can ask first.
 func (e *Env) Save(name string, replace bool) error {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	if !store.ValidName(name) {
 		return errf(BadName, "name", name)
 	}
@@ -37,6 +41,12 @@ func (e *Env) Save(name string, replace bool) error {
 // can end a saved login. It saves the profile in use, clears the login so Desktop opens signed
 // out, and makes name the profile in use; the new login is saved at the next switch.
 func (e *Env) Add(name string) error {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	if !store.ValidName(name) {
 		return errf(BadName, "name", name)
 	}
@@ -64,11 +74,20 @@ func (e *Env) Add(name string) error {
 
 // Switch saves the login in use under the current profile and restores profile name's login.
 func (e *Env) Switch(name string) error {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	target, ok := e.Vault.Find(name)
 	if !ok {
 		return errf(NoProfile, "name", name)
 	}
 	current := e.Vault.Current()
+	if current != "" && !store.ValidName(current) {
+		return errf(BadName, "name", current)
+	}
 	if current == target.Name {
 		return errf(AlreadyCurrent, "name", current)
 	}
@@ -96,6 +115,12 @@ func (e *Env) Switch(name string) error {
 
 // Rename renames a saved login.
 func (e *Env) Rename(old, name string) error {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	p, ok := e.Vault.Find(old)
 	if !ok {
 		return errf(NoProfile, "name", old)
@@ -111,6 +136,12 @@ func (e *Env) Rename(old, name string) error {
 
 // Remove forgets a saved login. Its chats stay in Desktop.
 func (e *Env) Remove(name string) error {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return err
+	}
+	defer unlock()
+
 	p, ok := e.Vault.Find(name)
 	if !ok {
 		return errf(NoProfile, "name", name)
@@ -155,10 +186,7 @@ func (e *Env) saveLogin(name string) error {
 	return nil
 }
 
-func (e *Env) signedIn() bool {
-	_, err := os.Stat(filepath.Join(e.Install.DataDir, "config.json"))
-	return err == nil
-}
+func (e *Env) signedIn() bool { return e.live() != "" }
 
 // unsavedLogin reports whether Desktop holds a login that no profile has saved.
 func (e *Env) unsavedLogin() bool {

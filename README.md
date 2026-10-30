@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/nyxon-tech/claude-switcher/releases/latest"><img src="https://img.shields.io/github/v/release/nyxon-tech/claude-switcher?style=flat-square&color=a8b2ff&labelColor=303345&label=release" alt="Latest release"></a>
-  <a href="https://github.com/nyxon-tech/claude-switcher/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/nyxon-tech/claude-switcher/ci.yml?branch=main&style=flat-square&color=a8b2ff&labelColor=303345&label=tests" alt="Tests"></a>
+  <a href="https://github.com/JittoJoseph/claude-switcher/releases/latest"><img src="https://img.shields.io/github/v/release/JittoJoseph/claude-switcher?style=flat-square&color=a8b2ff&labelColor=303345&label=release" alt="Latest release"></a>
+  <a href="https://github.com/JittoJoseph/claude-switcher/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/JittoJoseph/claude-switcher/ci.yml?branch=main&style=flat-square&color=a8b2ff&labelColor=303345&label=tests" alt="Tests"></a>
   <img src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-a8b2ff?style=flat-square&labelColor=303345" alt="Windows, macOS and Linux">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-a8b2ff?style=flat-square&labelColor=303345" alt="MIT license"></a>
 </p>
@@ -20,21 +20,52 @@ Claude Desktop is signed into one account at a time. Switching means logging out
 
 **Claude Switcher** saves each login once and switches between them in seconds. It shows the Code chats of every account in one place, copies or moves them to whichever account you are using, brings back chats that fell out of the sidebar, and undoes any of it. It is a single binary that only touches files on your computer.
 
+## This fork
+
+This fork keeps the original MIT license and Nyxon credits. Its installers and updater use releases from `JittoJoseph/claude-switcher`.
+The Go module also uses this fork. Release installers need a published release in this repository.
+
+For a local build, use:
+
+```powershell
+git clone https://github.com/JittoJoseph/claude-switcher.git
+cd claude-switcher
+go build -o bin/claude-switcher.exe ./cmd/claude-switcher
+.\bin\claude-switcher.exe doctor
+```
+
+On macOS or Linux, omit `.exe` from the build output. Run `./bin/claude-switcher doctor`.
+
+Current Windows versions use `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc`.
+The switcher also supports the older MSIX container and standalone data folders.
+A migrated package appears once, with its current data folder and its MSIX launch identity.
+
+Before the first account switch, back up the Desktop data folder and `~/.claude/projects`.
+Quit Claude Desktop from its tray menu before each login operation.
+The switcher saves a complete login snapshot before it replaces the previous snapshot.
+If a restore or clear operation fails, the switcher attempts to restore the original login.
+If that rollback fails, the error gives the recovery folder path.
+
+Operations that share a vault use an operating-system lock. A second mutation fails while the first operation holds the lock.
+Login replacement spans several files and cannot survive every power loss as one atomic operation.
+For an unrecognized `--data-dir`, process checks and automatic launch remain disabled.
+Recognized data folders retain those protections.
+
 ## Install
 
 **Windows** (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/nyxon-tech/claude-switcher/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1 | iex
 ```
 
 **macOS and Linux**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/nyxon-tech/claude-switcher/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | sh
 ```
 
-Both scripts download the latest release, check it against the published SHA-256 checksums, and install it for your user only, with no admin rights. Then run `claude-switcher`. You can also download an archive from [Releases](https://github.com/nyxon-tech/claude-switcher/releases/latest), or build it with `go install github.com/nyxon-tech/claude-switcher/v3/cmd/claude-switcher@latest`.
+Both scripts download the latest release, check it against the published SHA-256 checksums, and install it for your user only, with no admin rights. Then run `claude-switcher`. You can also download an archive from [Releases](https://github.com/JittoJoseph/claude-switcher/releases/latest), or build it with `go install github.com/JittoJoseph/claude-switcher/v3/cmd/claude-switcher@latest`.
 
 Already on v2? Run the same line. Your saved logins in `~/.claude-instances` carry over unchanged.
 
@@ -81,7 +112,7 @@ Claude Desktop keeps three things on disk, and Claude Switcher treats each one d
 
 | | Windows | macOS | Linux |
 | --- | --- | --- | --- |
-| Desktop data | `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude` (or `%APPDATA%\Claude`) | `~/Library/Application Support/Claude` | `~/.config/Claude` |
+| Desktop data | `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc` (legacy MSIX and `%APPDATA%\Claude` also supported) | `~/Library/Application Support/Claude` | `~/.config/Claude` |
 | Chat history | `%USERPROFILE%\.claude\projects` | `~/.claude/projects` | `~/.claude/projects` |
 | Saved logins | `%USERPROFILE%\.claude-instances` | `~/.claude-instances` | `~/.claude-instances` |
 
@@ -133,7 +164,7 @@ Global flags: `--json`, `--yes`, `--no-launch` (leave Desktop closed), `--theme`
 ## Build from source
 
 ```sh
-git clone https://github.com/nyxon-tech/claude-switcher
+git clone https://github.com/JittoJoseph/claude-switcher
 cd claude-switcher
 go test ./...
 go run ./cmd/claude-switcher

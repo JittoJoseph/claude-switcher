@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/platform"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/platform"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 const (

@@ -3,9 +3,9 @@ package ui
 import (
 	"strings"
 
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
 )
 
 // Rows of the body: the chips, the search field, a blank line, then the panes.

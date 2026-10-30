@@ -41,7 +41,7 @@ nfpms:
   - package_name: claude-switcher
     vendor: Nyxon
     maintainer: Nyxon <https://github.com/nyxon-tech>
-    homepage: https://github.com/nyxon-tech/claude-switcher
+    homepage: https://github.com/JittoJoseph/claude-switcher
     description: Switch Claude Desktop accounts without signing in again, and manage your Claude Code chats.
     license: MIT
     formats: [deb, rpm]
@@ -51,61 +51,7 @@ nfpms:
       - { src: completions/claude-switcher.fish, dst: /usr/share/fish/vendor_completions.d/claude-switcher.fish }
       - { src: manpages/claude-switcher.1.gz, dst: /usr/share/man/man1/claude-switcher.1.gz }
 
-# Package managers publish only once their repositories and the PUBLISHER_TOKEN secret exist.
-# A missing secret reaches the workflow as an empty variable, so test the value, not isEnvSet.
-homebrew_casks:
-  - name: claude-switcher
-    binaries: [claude-switcher]
-    homepage: https://github.com/nyxon-tech/claude-switcher
-    description: Switch Claude Desktop accounts without signing in again, and manage your Claude Code chats.
-    completions:
-      bash: completions/claude-switcher.bash
-      zsh: completions/claude-switcher.zsh
-      fish: completions/claude-switcher.fish
-    manpages: [manpages/claude-switcher.1.gz]
-    skip_upload: '{{ if index .Env "PUBLISHER_TOKEN" }}auto{{ else }}true{{ end }}'
-    repository:
-      owner: nyxon-tech
-      name: homebrew-tap
-      token: '{{ envOrDefault "PUBLISHER_TOKEN" "" }}'
-    # The binary is not notarized yet; without this macOS would call it damaged
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/claude-switcher"]
-          end
-
-scoops:
-  - name: claude-switcher
-    homepage: https://github.com/nyxon-tech/claude-switcher
-    description: Switch Claude Desktop accounts without signing in again, and manage your Claude Code chats.
-    license: MIT
-    skip_upload: '{{ if index .Env "PUBLISHER_TOKEN" }}auto{{ else }}true{{ end }}'
-    repository:
-      owner: nyxon-tech
-      name: scoop-bucket
-      token: '{{ envOrDefault "PUBLISHER_TOKEN" "" }}'
-
-winget:
-  - name: claude-switcher
-    package_identifier: Nyxon.ClaudeSwitcher
-    publisher: Nyxon
-    publisher_url: https://github.com/nyxon-tech
-    short_description: Switch Claude Desktop accounts without signing in again, and manage your Claude Code chats.
-    license: MIT
-    homepage: https://github.com/nyxon-tech/claude-switcher
-    release_notes_url: "https://github.com/nyxon-tech/claude-switcher/releases/tag/{{ .Tag }}"
-    tags: [claude, cli, tui, account-switcher, persian]
-    skip_upload: '{{ if index .Env "WINGET_TOKEN" }}auto{{ else }}true{{ end }}'
-    repository:
-      owner: nyxon-tech
-      name: winget-pkgs
-      branch: "claude-switcher-{{ .Version }}"
-      token: '{{ envOrDefault "WINGET_TOKEN" "" }}'
-      pull_request:
-        enabled: true
-        base: { owner: microsoft, name: winget-pkgs, branch: master }
+# Package-manager identities belong to upstream. This fork publishes releases without package-manager repository changes.
 
 release:
   # Tags like v3.0.0-rc.1 become pre-releases, which releases/latest (and so the installers) skip
@@ -115,10 +61,10 @@ release:
     - glob: ./install.ps1
   footer: |
     **Install**
-    - Windows: `irm https://raw.githubusercontent.com/nyxon-tech/claude-switcher/main/install.ps1 | iex`
-    - macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/nyxon-tech/claude-switcher/main/install.sh | sh`
+    - Windows: `irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1 | iex`
+    - macOS and Linux: `curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | sh`
 
-    Verify a download: `gh attestation verify <file> -R nyxon-tech/claude-switcher`
+    Verify a download: `gh attestation verify <file> -R JittoJoseph/claude-switcher`
 
 changelog:
   use: github

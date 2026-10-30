@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // Method is how Claude Switcher was installed, read from where its executable lives.
@@ -54,14 +55,13 @@ func MethodOf(exe string) Method {
 	return Installer
 }
 
-// Upgrade is the command that updates a package-manager install; "" for Installer and Package.
+// Upgrade returns the fork's Go installation command. Other package-manager
+// identities belong to upstream and must not replace this fork with its build.
 func (m Method) Upgrade() string {
-	return map[Method]string{
-		Winget: "winget upgrade Nyxon.ClaudeSwitcher",
-		Scoop:  "scoop update claude-switcher",
-		Brew:   "brew upgrade nyxon-tech/tap/claude-switcher",
-		Go:     "go install github.com/nyxon-tech/claude-switcher/v3/cmd/claude-switcher@latest",
-	}[m]
+	if m == Go {
+		return "go install github.com/JittoJoseph/claude-switcher/v3/cmd/claude-switcher@latest"
+	}
+	return ""
 }
 
 // Asset is the release archive for an OS and CPU. macOS has one universal binary ("all").
@@ -79,6 +79,8 @@ func Asset(goos, goarch string) string {
 // Install replaces the executable exe with the latest release, after checking the download
 // against the release's checksums.txt.
 func Install(ctx context.Context, client *http.Client, exe string) error {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
 	asset := Asset(runtime.GOOS, runtime.GOARCH)
 	sums, err := get(ctx, client, Releases+"/latest/download/checksums.txt")
 	if err != nil {
@@ -118,7 +120,7 @@ func get(ctx context.Context, client *http.Client, url string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("download %s: %s", path.Base(url), resp.Status)
 	}
-	return io.ReadAll(io.LimitReader(resp.Body, 256<<20))
+	return readLimited(resp.Body, 256<<20)
 }
 
 // checksum finds name's SHA-256 in a checksums.txt ("<hex>  <name>" per line).
@@ -126,8 +128,15 @@ func checksum(sums []byte, name string) (string, error) {
 	sc := bufio.NewScanner(bytes.NewReader(sums))
 	for sc.Scan() {
 		if f := strings.Fields(sc.Text()); len(f) == 2 && strings.TrimPrefix(f[1], "*") == name {
+			sum, err := hex.DecodeString(f[0])
+			if err != nil || len(sum) != sha256.Size {
+				return "", fmt.Errorf("invalid SHA-256 for %s", name)
+			}
 			return strings.ToLower(f[0]), nil
 		}
+	}
+	if err := sc.Err(); err != nil {
+		return "", err
 	}
 	return "", fmt.Errorf("%s is not in checksums.txt", name)
 }
@@ -147,7 +156,7 @@ func extract(archive []byte, asset string) ([]byte, error) {
 					return nil, err
 				}
 				defer rc.Close()
-				return io.ReadAll(rc)
+				return readLimited(rc, 256<<20)
 			}
 		}
 		return nil, errors.New("no executable in " + asset)
@@ -156,6 +165,7 @@ func extract(archive []byte, asset string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer gz.Close()
 	tr := tar.NewReader(gz)
 	for {
 		h, err := tr.Next()
@@ -166,7 +176,7 @@ func extract(archive []byte, asset string) ([]byte, error) {
 			return nil, err
 		}
 		if h.Typeflag == tar.TypeReg && path.Base(h.Name) == name {
-			return io.ReadAll(tr)
+			return readLimited(tr, 256<<20)
 		}
 	}
 }
@@ -188,4 +198,16 @@ func replace(exe string, bin []byte) error {
 		return err
 	}
 	return nil
+}
+
+// readLimited fails on overflow rather than accepting a silently truncated download.
+func readLimited(r io.Reader, limit int64) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(r, limit+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > limit {
+		return nil, errors.New("release file exceeds size limit")
+	}
+	return data, nil
 }

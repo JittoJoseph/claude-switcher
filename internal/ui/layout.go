@@ -3,8 +3,8 @@ package ui
 import (
 	"strings"
 
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
 )
 
 // Layout places text on screen. Every visible string goes through it: first the rtl mode

@@ -11,9 +11,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ui"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/update"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ui"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/update"
 )
 
 func (a *app) moreCommands() []*cobra.Command {
@@ -99,7 +99,7 @@ func (a *app) update(cmd *cobra.Command, _ []string) error {
 	case m.Upgrade() != "":
 		return a.result(map[string]any{"current": current, "method": m, "command": m.Upgrade()},
 			"cli.update.managed", "method", i18n.T("cli.install."+string(m)), "command", m.Upgrade())
-	case m == update.Package:
+	case m == update.Package || m == update.Winget || m == update.Scoop || m == update.Brew:
 		url := update.Releases + "/latest"
 		return a.result(map[string]any{"current": current, "method": m, "url": url}, "cli.update.package", "url", url)
 	}

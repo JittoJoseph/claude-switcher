@@ -2,9 +2,11 @@ package platform
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -42,23 +44,33 @@ func windowsInstalls(local, roaming string) []Install {
 	return ins
 }
 
-// msixInstalls returns the Claude package with the known family name or, when it is missing,
-// any Claude_* package (another publisher or architecture).
+// msixInstalls supports both the current Claude-Data layout and the legacy MSIX
+// container. A migrated family is returned only once, with its real launch ID.
 func msixInstalls(local string) []Install {
-	pkgs := []string{filepath.Join(local, "Packages", msixFamily)}
-	if !isDir(msixData(pkgs[0])) {
-		pkgs, _ = filepath.Glob(filepath.Join(local, "Packages", "Claude_*"))
+	packages, _ := filepath.Glob(filepath.Join(local, "Packages", "Claude_*"))
+	migrated, _ := filepath.Glob(filepath.Join(local, "Claude-Data", "claude_*"))
+	families := map[string]string{}
+	for _, pkg := range packages {
+		family := filepath.Base(pkg)
+		if data := msixData(pkg); isDir(data) {
+			families[strings.ToLower(family)] = data
+		}
+	}
+	for _, data := range migrated {
+		if isDir(data) {
+			families[strings.ToLower(filepath.Base(data))] = data
+		}
 	}
 	var ins []Install
-	for _, pkg := range pkgs {
-		if data := msixData(pkg); isDir(data) {
-			ins = append(ins, Install{
-				Kind:    MSIX,
-				DataDir: data,
-				LogDir:  filepath.Join(local, "Claude", "logs"),
-				AppID:   filepath.Base(pkg) + "!Claude",
-			})
+	for _, family := range slices.Sorted(maps.Keys(families)) {
+		data := families[family]
+		// The modern layout has its own logs; the legacy package logs live outside it.
+		logs := filepath.Join(local, "Claude", "logs")
+		if sameDir(filepath.Dir(data), filepath.Join(local, "Claude-Data")) {
+			logs = filepath.Join(data, "logs")
 		}
+		appFamily := "Claude_" + strings.TrimPrefix(family, "claude_")
+		ins = append(ins, Install{Kind: MSIX, DataDir: data, LogDir: logs, AppID: appFamily + "!Claude"})
 	}
 	return ins
 }

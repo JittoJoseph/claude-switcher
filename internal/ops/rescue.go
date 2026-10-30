@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 // Orphan is a chat whose history is on disk but that no chat list shows.
@@ -103,6 +103,12 @@ func chatKey(title, cwd string) string {
 // Rescue gives lost chats a card in list to, so Desktop shows them again. sessions are
 // transcript ids (or prefixes) of chats Orphans offers.
 func (e *Env) Rescue(to List, sessions []string) (Result, error) {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return Result{}, err
+	}
+	defer unlock()
+
 	if to.Dir == "" {
 		return Result{}, errf(NoList, "ref", "")
 	}

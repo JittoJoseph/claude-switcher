@@ -56,10 +56,7 @@ func (v Vault) SaveSettings(s Settings) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(v.Dir, 0o700); err != nil {
-		return err
-	}
-	return os.WriteFile(v.settingsPath(), data, 0o600)
+	return writeAtomic(v.settingsPath(), data)
 }
 
 func (v Vault) settingsPath() string { return filepath.Join(v.Dir, "settings.json") }

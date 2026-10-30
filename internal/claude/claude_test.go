@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 const sample = `{"sessionId":"local_aaa","cliSessionId":"s2","priorCliSessionIds":["s0","s1"],"cwd":"C:\\work\\proj","title":"بازبینی <div> & co","lastActivityAt":1789898700000,"createdAt":1789898400000,"isArchived":true,"model":"claude-opus-5","rewindEdges":[{"id":1,"at":2.5e3}],"isStarred":true,"future":{"x":null}}`
@@ -218,5 +218,16 @@ func TestLiveAccount(t *testing.T) {
 func TestMarshalHasNoBOM(t *testing.T) {
 	if b := NewCard(transcript.Meta{Title: "x"}).Marshal(); bytes.HasPrefix(b, []byte{0xEF, 0xBB, 0xBF}) {
 		t.Error("byte order mark")
+	}
+}
+
+func TestCardRejectsTrailingData(t *testing.T) {
+	for _, data := range []string{`{} {}`, `{}garbage`, `{"title":"a"} null`} {
+		if _, err := ParseCard([]byte(data)); err == nil {
+			t.Fatalf("accepted %q", data)
+		}
+	}
+	if _, err := ParseCard([]byte("{} \n\t")); err != nil {
+		t.Fatal(err)
 	}
 }

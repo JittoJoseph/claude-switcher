@@ -7,8 +7,8 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
 )
 
 // Drawing shared by the Activity, Usage and Doctor screens: scrolling, bars, the column chart

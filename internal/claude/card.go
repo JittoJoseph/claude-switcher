@@ -9,13 +9,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 // Card is one chat record, local_<uuid>.json. Every field is kept as raw JSON in its original
@@ -64,6 +65,9 @@ func ParseCard(data []byte) (*Card, error) {
 	}
 	if _, err := dec.Token(); err != nil {
 		return nil, err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, errors.New("trailing data after card object")
 	}
 	return c, nil
 }

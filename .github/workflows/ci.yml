@@ -16,8 +16,14 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+      - name: Check Go formatting
+        shell: bash
+        run: test -z "$(gofmt -l $(git ls-files '*.go'))"
       - run: go vet ./...
       - run: go test ./...
+      - name: Check for data races
+        if: runner.os == 'Linux'
+        run: go test -race ./...
       - name: Build and run the binary
         shell: bash
         run: |

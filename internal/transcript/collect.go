@@ -16,7 +16,7 @@ import (
 )
 
 // cacheVersion changes whenever record or cachedFile change shape; an old cache is then ignored.
-const cacheVersion = 1
+const cacheVersion = 2
 
 // record is one API message as it counts toward usage.
 type record struct {
@@ -154,7 +154,7 @@ type usageLine struct {
 	} `json:"message"`
 }
 
-var assistantTag = []byte(`"type":"assistant"`)
+var assistantTag = []byte(`"assistant"`)
 
 // fileRecords reads the API messages of one file, each once.
 func fileRecords(path string) ([]record, error) {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
 )
 
 func find(checks []Check, title string) (Check, bool) {

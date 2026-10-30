@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"charm.land/lipgloss/v2"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
 )
 
 // m on the account in use shows the plan's counts, then copies the other account's chats in.

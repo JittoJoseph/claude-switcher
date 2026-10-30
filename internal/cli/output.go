@@ -16,8 +16,8 @@ import (
 	"charm.land/lipgloss/v2/table"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
 )
 
 // txt readies a line of UI text: user data in it, such as a Persian name, joined and reordered

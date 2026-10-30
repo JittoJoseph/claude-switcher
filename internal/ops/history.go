@@ -5,7 +5,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
 )
 
 // History lists every recorded change, newest first (v2's included). Changes is len(Entries).
@@ -13,6 +13,12 @@ func (e *Env) History() ([]store.Journal, error) { return e.Vault.Journals() }
 
 // Undo reverses the newest change that is not undone yet and returns it.
 func (e *Env) Undo() (store.Journal, error) {
+	unlock, err := e.Vault.Lock()
+	if err != nil {
+		return store.Journal{}, err
+	}
+	defer unlock()
+
 	js, err := e.Vault.Journals()
 	if err != nil {
 		return store.Journal{}, err

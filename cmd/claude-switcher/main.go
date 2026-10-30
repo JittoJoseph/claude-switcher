@@ -7,7 +7,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/cli"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/cli"
 )
 
 // Set by the release build: -ldflags "-X main.version=3.0.0 -X main.commit=abc1234 -X main.date=...".

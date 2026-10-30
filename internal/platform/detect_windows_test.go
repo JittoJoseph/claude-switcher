@@ -1,6 +1,7 @@
 package platform
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -70,4 +71,35 @@ func TestWindowsInstalls(t *testing.T) {
 			t.Errorf("got %+v, want only the MSIX install", got)
 		}
 	})
+}
+
+func TestMigratedWindowsData(t *testing.T) {
+	for _, legacy := range []bool{false, true} {
+		t.Run(fmt.Sprint(legacy), func(t *testing.T) {
+			local, roaming := t.TempDir(), t.TempDir()
+			data := filepath.Join(local, "Claude-Data", "claude_pzs8sxrjxfjjc")
+			mkfile(t, filepath.Join(data, "config.json"), time.Now().Add(-time.Hour))
+			if legacy {
+				// Even a freshly touched old container must not shadow the migrated data.
+				old := msixData(filepath.Join(local, "Packages", msixFamily))
+				mkfile(t, filepath.Join(old, ".user-data-left.claude_pzs8sxrjxfjjc"), time.Now())
+				mkfile(t, filepath.Join(old, "config.json"), time.Now())
+			}
+			got := windowsInstalls(local, roaming)
+			if len(got) != 1 || got[0].DataDir != data || got[0].Kind != MSIX ||
+				got[0].AppID != msixFamily+"!Claude" || got[0].LogDir != filepath.Join(data, "logs") {
+				t.Fatalf("migrated install: %+v", got)
+			}
+		})
+	}
+}
+
+func TestWindowsDetectsAllFamilies(t *testing.T) {
+	local, roaming := t.TempDir(), t.TempDir()
+	for _, family := range []string{msixFamily, "Claude_otherhash"} {
+		mkfile(t, filepath.Join(msixData(filepath.Join(local, "Packages", family)), "config.json"), time.Now())
+	}
+	if got := windowsInstalls(local, roaming); len(got) != 2 {
+		t.Fatalf("got %+v", got)
+	}
 }

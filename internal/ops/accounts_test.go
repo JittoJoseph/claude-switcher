@@ -158,3 +158,45 @@ func TestSwitchKeepsSavedLoginWhenSignedOut(t *testing.T) {
 		t.Error("switch should still restore personal")
 	}
 }
+
+func TestSaveRejectsUnsignedOrInvalidConfig(t *testing.T) {
+	for _, config := range []string{`{}`, `{"userThemeMode":"dark"}`, `{"lastKnownAccountUuid":`, `null`} {
+		f := newFixture(t)
+		f.signIn(work, "work")
+		must(t, f.Save("work", false))
+		before := f.hash(filepath.Join(f.Vault.Dir, "work"))
+		f.put(filepath.Join(f.data, "config.json"), config)
+		wantCode(t, f.Save("work", false), NotSignedIn)
+		if f.hash(filepath.Join(f.Vault.Dir, "work")) != before {
+			t.Fatal("invalid config overwrote saved login")
+		}
+	}
+}
+
+func TestSwitchRejectsInvalidCurrentMarker(t *testing.T) {
+	f := newFixture(t)
+	f.signIn(work, "work")
+	must(t, f.Save("work", false))
+	must(t, f.Vault.SetCurrent("../escape"))
+	before := f.login()
+	wantCode(t, f.Switch("work"), BadName)
+	if f.login() != before {
+		t.Fatal("invalid marker changed the login")
+	}
+}
+
+func TestAccountMutationsRefuseBusyVault(t *testing.T) {
+	f := newFixture(t)
+	f.signIn(work, "work")
+	must(t, f.Save("work", false))
+	before := f.login()
+	unlock, err := f.Vault.Lock()
+	must(t, err)
+	defer unlock()
+	if f.Add("personal") == nil || f.Save("work", false) == nil {
+		t.Fatal("busy vault accepted a mutation")
+	}
+	if f.login() != before {
+		t.Fatal("busy vault changed the live login")
+	}
+}

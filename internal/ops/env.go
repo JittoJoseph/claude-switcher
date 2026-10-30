@@ -9,16 +9,16 @@ import (
 	"errors"
 	"time"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/claude"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/platform"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/transcript"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/claude"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/platform"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/transcript"
 )
 
 // Options choose the folders to work on; "" finds the usual one.
 type Options struct {
-	DataDir     string // Desktop's data folder; set, it is used as is and nothing runs or launches
+	DataDir     string // Desktop data folder; recognized installs retain process checks and launching
 	VaultDir    string // our state, platform.VaultDir() by default
 	ProjectsDir string // Claude Code transcripts, platform.ProjectsDir() by default
 }
@@ -49,6 +49,13 @@ func Open(o Options) (*Env, error) {
 			return nil, err
 		}
 		in = found[0]
+	} else if found, err := platform.Detect(); err == nil {
+		for _, candidate := range found {
+			if sameDir(candidate.DataDir, o.DataDir) {
+				in = candidate
+				break
+			}
+		}
 	}
 	return &Env{
 		Install:   in,

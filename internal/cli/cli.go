@@ -20,13 +20,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ops"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/platform"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/rtl"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/store"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/ui"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/update"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ops"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/platform"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/rtl"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/store"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/ui"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/update"
 )
 
 // Build is what the binary knows about itself.

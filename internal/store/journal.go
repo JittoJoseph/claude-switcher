@@ -99,11 +99,7 @@ func (j *Journal) write() error {
 	if err != nil {
 		return err
 	}
-	path := filepath.Join(j.Dir, "journal.json")
-	if err := os.WriteFile(path+".tmp", data, 0o600); err != nil {
-		return err
-	}
-	return os.Rename(path+".tmp", path)
+	return writeAtomic(filepath.Join(j.Dir, "journal.json"), data)
 }
 
 // Journals lists every readable journal that changed something, newest first, v2's included
@@ -162,5 +158,5 @@ func (v Vault) Undo(j Journal) error {
 	if err := errors.Join(errs...); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(j.Dir, "undone"), []byte(time.Now().Format(time.RFC3339Nano)), 0o600)
+	return writeAtomic(filepath.Join(j.Dir, "undone"), []byte(time.Now().Format(time.RFC3339Nano)))
 }

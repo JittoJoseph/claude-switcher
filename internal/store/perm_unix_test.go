@@ -15,9 +15,9 @@ func TestSavedLoginIsPrivate(t *testing.T) {
 	os.Chmod(filepath.Join(data, "Preferences"), 0o644)
 	must(t, v.SaveLogin("work", data, items))
 	for path, want := range map[string]os.FileMode{
-		v.Dir:                                   0o700,
-		filepath.Join(v.Dir, "work"):            0o700,
-		filepath.Join(v.Dir, "work", "Network"): 0o700,
+		v.Dir:                                              0o700,
+		filepath.Join(v.Dir, "work"):                       0o700,
+		filepath.Join(v.Dir, "work", "Network"):            0o700,
 		filepath.Join(v.Dir, "work", "Preferences"):        0o600,
 		filepath.Join(v.Dir, "work", "Network", "Cookies"): 0o600,
 	} {

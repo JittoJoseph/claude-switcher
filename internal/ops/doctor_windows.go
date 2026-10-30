@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nyxon-tech/claude-switcher/v3/internal/i18n"
-	"github.com/nyxon-tech/claude-switcher/v3/internal/platform"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/i18n"
+	"github.com/JittoJoseph/claude-switcher/v3/internal/platform"
 )
 
 // platformChecks look for a leftover standalone data folder and a broken Cowork VM.
@@ -13,7 +13,9 @@ func platformChecks(e *Env) []Check {
 	var out []Check
 	// The MSIX app falls back to the real %APPDATA% for files missing from its own copy, so a
 	// login left there by the older installer can come back.
-	if old := filepath.Join(os.Getenv("APPDATA"), "Claude"); e.Install.Kind == platform.MSIX && isDir(old) {
+	if old := filepath.Join(os.Getenv("APPDATA"), "Claude"); e.Install.Kind == platform.MSIX &&
+		filepath.Base(e.Install.DataDir) == "Claude" && !sameDir(old, e.Install.DataDir) &&
+		(isDir(filepath.Join(old, "Network")) || fileExists(filepath.Join(old, "config.json"))) {
 		out = append(out, Check{Level: Warn, Title: i18n.T("ops.doctor.leftover"),
 			Detail: i18n.T("ops.doctor.leftover.detail", "path", old), Fix: i18n.T("ops.doctor.leftover.fix")})
 	}
@@ -30,4 +32,9 @@ func platformChecks(e *Env) []Check {
 func isDir(path string) bool {
 	st, err := os.Stat(path)
 	return err == nil && st.IsDir()
+}
+
+func fileExists(path string) bool {
+	st, err := os.Stat(path)
+	return err == nil && st.Mode().IsRegular()
 }

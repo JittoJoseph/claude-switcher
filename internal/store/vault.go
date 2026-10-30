@@ -87,10 +87,7 @@ func (v Vault) Rename(old, name string) error {
 func (v Vault) Remove(name string) error { return os.RemoveAll(filepath.Join(v.Dir, name)) }
 
 func (v Vault) writeFile(path, text string) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-		return err
-	}
-	return os.WriteFile(path, []byte(text), 0o600)
+	return writeAtomic(path, []byte(text))
 }
 
 func readLine(path string) string {
@@ -107,7 +104,7 @@ var nameRule = regexp.MustCompile(`^[\p{L}\p{N}](?:[\p{L}\p{M}\p{N} ._\x{200C}-]
 // ValidName reports whether name can be a profile: up to 40 letters, digits, spaces, dots,
 // dashes or underscores, starting with a letter or digit, and not a name Windows reserves.
 func ValidName(name string) bool {
-	if !nameRule.MatchString(name) {
+	if !nameRule.MatchString(name) || strings.EqualFold(name, "cache") {
 		return false
 	}
 	base, _, _ := strings.Cut(name, ".")
