@@ -21,6 +21,16 @@ irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.p
 claude-switcher
 ```
 
+To inspect the installer before execution, download it as a file:
+
+```powershell
+Invoke-WebRequest https://github.com/JittoJoseph/claude-switcher/releases/latest/download/install.ps1 -OutFile ./install-claude-switcher.ps1
+Get-Content ./install-claude-switcher.ps1
+./install-claude-switcher.ps1
+```
+
+The short installation command executes a remote script. The file-based option lets you review that script first.
+
 The installer supports Windows PowerShell 5.1 and PowerShell 7 on x64 and ARM64 Windows.
 It installs for your Windows user, updates PATH in the current terminal, and creates a Start menu shortcut.
 You can also open **Claude Switcher** from the Start menu.
@@ -195,6 +205,10 @@ Common flags include `--json`, `--yes`, `--no-launch`, `--theme`, and `--rtl`.
 Exit codes: 0 means success, 1 means an error, and 2 means invalid arguments.
 Codes 3, 4, and 5 mean a safety refusal, missing data, and cancellation.
 
+## Security review
+
+See the [security review](docs/security-review.md) for the audit scope, Defender alert investigation, and terminal-output hardening.
+
 ## Data and failure handling
 
 | Data | Windows | macOS | Linux |
@@ -217,7 +231,7 @@ The switcher does not upload your profiles or conversations.
 
 ## Build and release
 
-Source builds require Go 1.26.7 or later.
+Source builds require Go 1.26.10 or later, including the security fixes missing from the initial fork release.
 
 ```sh
 git clone https://github.com/JittoJoseph/claude-switcher.git
@@ -230,13 +244,19 @@ On Windows, use `bin/claude-switcher.exe` for the output name.
 `go run ./tools/demodata -out demo` creates sample accounts and conversations for a local demo.
 See [the architecture guide](docs/ARCHITECTURE.md) for the package layout.
 
-Successful CI on `main` automatically calls the release workflow.
-The workflow creates the next patch tag, starting at `v3.0.1` for this fork.
-It builds release archives and Linux packages, publishes checksums, and adds build attestations.
-It then installs the published release on Windows, macOS, and Linux, including the README's installation commands.
-Pull requests and failed CI runs do not publish releases. An older commit does not release after `main` advances.
-A rerun reuses an existing tag and does not replace a published release.
-Maintainers can retry the release workflow from the repository's **Actions** tab.
+Releases are manual. A push to `main` runs CI without publishing a version.
+To release, open **Actions > release > Run workflow** on `main`.
+The workflow requires successful CI for that exact commit before it creates the next patch tag.
+It builds archives and Linux packages, publishes checksums and build attestations, then tests the published installers on three operating systems.
+Reruns reuse the tag and do not replace a published release.
+
+Routine CI keeps the three operating systems and installer tests.
+Linux runs the test suite once with race detection. Release packaging runs only when requested.
+New pushes cancel obsolete CI runs on the same branch.
+
+Ordinary CLI commands use cached update notices and do not wait for a network check.
+The full-screen app checks for updates in the background, subject to the update preference.
+Chat-list reads share a transcript index within each request without caching account state between operations.
 
 ## Credits
 

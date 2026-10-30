@@ -70,6 +70,7 @@ func Visual(s string, base Dir) string {
 // Line prepares one line of text for display in mode m: Visual for App (and Auto), unchanged
 // for Terminal and Off.
 func (m Mode) Line(s string, base Dir) string {
+	s = plainLine(s)
 	if m == Terminal || m == Off {
 		return s
 	}
@@ -78,6 +79,7 @@ func (m Mode) Line(s string, base Dir) string {
 
 // Width is how many terminal cells Line(s, base) takes.
 func (m Mode) Width(s string) int {
+	s = plainLine(s)
 	if m == Terminal || m == Off {
 		return m.cells(s)
 	}
@@ -89,6 +91,7 @@ func (m Mode) Width(s string) int {
 // Fit shortens s at its logical end with "…" so that its displayed form fits width cells, then
 // returns Line of it. Text that already fits is only passed through Line.
 func (m Mode) Fit(s string, width int, base Dir) string {
+	s = plainLine(s)
 	if width <= 0 {
 		return ""
 	}
@@ -143,5 +146,24 @@ func Fold(s string) string {
 			return '0' + r - 0x0660
 		}
 		return unicode.ToLower(r)
+	}, s)
+}
+
+// plainLine keeps untrusted titles, paths, and previews from sending terminal
+// control commands. Application styles are added only after plain-text layout.
+func plainLine(s string) string {
+	if !strings.ContainsFunc(s, unicode.IsControl) {
+		return s
+	}
+	s = ansi.Strip(s)
+	return strings.Map(func(r rune) rune {
+		switch r {
+		case '\n', '\r', '\t':
+			return ' '
+		}
+		if unicode.IsControl(r) {
+			return -1
+		}
+		return r
 	}, s)
 }

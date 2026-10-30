@@ -83,6 +83,10 @@ func (e *Env) Lists() ([]List, error) {
 }
 
 func (e *Env) lists(profiles []store.Profile) ([]List, error) {
+	return e.readLists(profiles, nil)
+}
+
+func (e *Env) readLists(profiles []store.Profile, consume func(List, []*claude.Card) error) ([]List, error) {
 	spaces, err := claude.Spaces(e.Install.DataDir)
 	if err != nil {
 		return nil, err
@@ -110,6 +114,11 @@ func (e *Env) lists(profiles []store.Profile) ([]List, error) {
 		}
 		if orgs[s.Account] > 1 {
 			l.Label = i18n.T("ops.list.org", "label", l.Label, "id", short(s.Org))
+		}
+		if consume != nil {
+			if err := consume(l, cards); err != nil {
+				return nil, err
+			}
 		}
 		out = append(out, l)
 	}

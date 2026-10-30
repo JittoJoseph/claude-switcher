@@ -36,11 +36,39 @@ func (e *Env) Chats(l List) ([]Chat, error) {
 	return chatsOf(l, index)
 }
 
+// ChatLists reads list metadata and chats together. Each card is parsed once and
+// all lists share one transcript index. Nothing is cached beyond this request.
+func (e *Env) ChatLists() ([]List, [][]Chat, error) {
+	profiles, err := e.Vault.Profiles()
+	if err != nil {
+		return nil, nil, err
+	}
+	var index map[string]string
+	indexed := false
+	var groups [][]Chat
+	lists, err := e.readLists(profiles, func(l List, cards []*claude.Card) error {
+		if len(cards) > 0 && !indexed {
+			index, err = e.Index(e.Projects)
+			if err != nil {
+				return err
+			}
+			indexed = true
+		}
+		groups = append(groups, chatsFromCards(l, cards, index))
+		return nil
+	})
+	return lists, groups, err
+}
+
 func chatsOf(l List, index map[string]string) ([]Chat, error) {
 	cards, err := l.Cards()
 	if err != nil {
 		return nil, err
 	}
+	return chatsFromCards(l, cards, index), nil
+}
+
+func chatsFromCards(l List, cards []*claude.Card, index map[string]string) []Chat {
 	out := make([]Chat, 0, len(cards))
 	for _, c := range cards {
 		path, found := index[c.Session()]
@@ -54,7 +82,7 @@ func chatsOf(l List, index map[string]string) ([]Chat, error) {
 		})
 	}
 	slices.SortStableFunc(out, func(a, b Chat) int { return b.Last.Compare(a.Last) })
-	return out, nil
+	return out
 }
 
 // lastOf is when a chat was last used: two lists can hold the same chat at different points.

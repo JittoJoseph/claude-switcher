@@ -4,10 +4,11 @@ import (
 	"cmp"
 	"image/color"
 	"os"
+	"strconv"
+	"strings"
 
 	"charm.land/fang/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/x/term"
 
 	"github.com/JittoJoseph/claude-switcher/v3/internal/ui"
 )
@@ -44,18 +45,17 @@ func (a *app) theme() string {
 	return shortTheme(cmp.Or(a.flags.theme, a.settings.Theme))
 }
 
-// darkBackground asks the terminal, only for the themes that follow it and only when the
-// answer shows: JSON has no colours.
+// darkBackground avoids synchronous terminal round trips during CLI startup.
+// The full-screen app requests background colors asynchronously through Bubble Tea.
 func (a *app) darkBackground() bool {
-	switch a.theme() {
-	case "auto", "contrast":
-		in, okIn := a.in.(term.File)
-		out, okOut := a.stdout.(term.File)
-		if a.tty && a.ttyIn && okIn && okOut && !a.flags.json {
-			return lipgloss.HasDarkBackground(in, out)
-		}
-	case "light":
+	if a.theme() == "light" {
 		return false
+	}
+	if a.theme() == "auto" || a.theme() == "contrast" {
+		parts := strings.Split(os.Getenv("COLORFGBG"), ";")
+		if bg, err := strconv.Atoi(parts[len(parts)-1]); err == nil {
+			return bg != 7 && bg != 15
+		}
 	}
 	return true
 }

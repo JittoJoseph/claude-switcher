@@ -1,9 +1,9 @@
 name: release
 on:
-  workflow_call:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: read
   id-token: write
   attestations: write
 concurrency:
@@ -22,11 +22,18 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-      - name: Validate a manual release
-        if: github.event_name == 'workflow_dispatch'
+      - name: Require successful CI for this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          go vet ./...
-          go test ./...
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&status=completed" --jq '[.workflow_runs[] | select(.conclusion == "success")][0].id // empty')
+          if [ -z "$run" ]; then
+            echo "Run CI successfully for this commit before publishing a release."
+            exit 1
+          fi
       - name: Select the next patch release
         id: version
         env:

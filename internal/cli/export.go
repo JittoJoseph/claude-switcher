@@ -62,14 +62,12 @@ func (a *app) export(ref, format, output string) error {
 // findChat finds the chat ref names in any list: its id, the id without "local_", its
 // transcript id, or a prefix of one of them. A chat held by several lists is their newest copy.
 func (a *app) findChat(env *ops.Env, ref string) (ops.Chat, error) {
-	lists, err := env.Lists()
+	_, groups, err := env.ChatLists()
 	if err != nil {
 		return ops.Chat{}, err
 	}
-	chats, err := allChats(env, lists)
-	if err != nil {
-		return ops.Chat{}, err
-	}
+	chats := flattenChats(groups)
+
 	var hits []ops.Chat
 	seen := map[string]bool{}
 	for _, c := range chats {

@@ -95,8 +95,8 @@ type app struct {
 	vault              store.Vault
 	settings           store.Settings
 	env                *ops.Env
-	relaunch           *ops.Env    // start Desktop again once the command has reported
-	newer              chan string // the update check started for this command
+	relaunch           *ops.Env // start Desktop again once the command has reported
+	showUpdate         bool     // ordinary commands only inspect the cached update notice
 }
 
 // newApp reads the global flags ahead of Cobra, because the settings they point at, the rtl
@@ -220,7 +220,7 @@ func (a *app) noCommand(c *cobra.Command, args []string) error {
 	return nil
 }
 
-// prepare checks the global flags and starts the daily update check for the command that runs.
+// prepare validates flags. Network update checks belong to the long-running app, not short CLI commands.
 func (a *app) prepare(cmd *cobra.Command, _ []string) error {
 	for _, f := range []struct {
 		name, value string
@@ -233,11 +233,7 @@ func (a *app) prepare(cmd *cobra.Command, _ []string) error {
 			return usageError(errText("cli.err.flag-value", "flag", f.name, "value", f.value, "allowed", strings.Join(f.allowed, ", ")), cmd)
 		}
 	}
-	if a.ttyErr && !a.flags.json && !quiet(cmd) {
-		n := a.notifier()
-		a.newer = make(chan string, 1)
-		go func() { a.newer <- n.Newer(context.Background()) }()
-	}
+	a.showUpdate = a.ttyErr && !a.flags.json && !quiet(cmd)
 	return nil
 }
 
@@ -262,10 +258,10 @@ func (a *app) notifier() update.Notifier {
 
 // notifyUpdate says once, after the command, that a newer version is out.
 func (a *app) notifyUpdate() {
-	if a.newer == nil {
+	if !a.showUpdate {
 		return
 	}
-	if v := <-a.newer; v != "" {
+	if v := a.notifier().CachedNewer(); v != "" {
 		fmt.Fprintln(a.err)
 		a.warn(a.err, i18n.T("cli.update.available", "version", v, "command", upgradeCommand()))
 	}

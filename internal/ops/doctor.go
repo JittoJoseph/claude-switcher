@@ -109,7 +109,7 @@ func (e *Env) listChecks(st Status) []Check {
 			out = append(out, Check{Level: Info, Title: i18n.T("ops.doctor.ghosts", "n", n, "label", l.Label), Detail: i18n.T("ops.doctor.ghosts.detail")})
 		}
 	}
-	switch orphans, _, err := e.Orphans(); {
+	switch orphans, _, err := e.orphansFromIndex(index); {
 	case err != nil:
 		out = append(out, Check{Level: Warn, Title: i18n.T("ops.doctor.transcripts-unreadable"), Detail: err.Error()})
 	case len(orphans) > 0:

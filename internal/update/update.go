@@ -191,3 +191,23 @@ func (n Notifier) Newer(ctx context.Context) string {
 	}
 	return ""
 }
+
+// CachedNewer reads a previous result without making a network request or writing
+// the cache. Short CLI commands must not wait for optional update notifications.
+func (n Notifier) CachedNewer() string {
+	if n.Off {
+		return ""
+	}
+	data, err := os.ReadFile(n.Cache)
+	if err != nil {
+		return ""
+	}
+	var last lastCheck
+	if json.Unmarshal(data, &last) != nil {
+		return ""
+	}
+	if Newer(last.Latest, n.Current) {
+		return last.Latest
+	}
+	return ""
+}

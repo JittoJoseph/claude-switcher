@@ -32,6 +32,10 @@ func (e *Env) Orphans() ([]Orphan, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
+	return e.orphansFromIndex(index)
+}
+
+func (e *Env) orphansFromIndex(index map[string]string) ([]Orphan, int, error) {
 	spaces, err := claude.Spaces(e.Install.DataDir)
 	if err != nil {
 		return nil, 0, err

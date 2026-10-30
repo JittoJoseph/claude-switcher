@@ -180,15 +180,7 @@ func (s *chatsScreen) load(c *Ctx) tea.Cmd {
 	gen, env := s.gen, c.Env
 	return func() tea.Msg {
 		msg := chatsLoadedMsg{gen: gen}
-		msg.lists, msg.err = env.Lists()
-		for _, l := range msg.lists {
-			if msg.err != nil {
-				break
-			}
-			var chats []ops.Chat
-			chats, msg.err = env.Chats(l)
-			msg.chats = append(msg.chats, chats)
-		}
+		msg.lists, msg.chats, msg.err = env.ChatLists()
 		return msg
 	}
 }

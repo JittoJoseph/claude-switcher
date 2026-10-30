@@ -72,19 +72,26 @@ func (a *app) chats(args []string, lost bool, limit int) error {
 	if lost {
 		return a.lostChats(env, limit)
 	}
-	lists, err := env.Lists()
+	var lists []ops.List
+	var chats []ops.Chat
 	if len(args) == 1 {
 		var l ops.List
 		l, err = env.FindList(args[0])
-		lists = []ops.List{l}
+		if err == nil {
+			lists = []ops.List{l}
+			chats, err = env.Chats(l)
+		}
+	} else {
+		var groups [][]ops.Chat
+		lists, groups, err = env.ChatLists()
+		if err == nil {
+			chats = flattenChats(groups)
+		}
 	}
 	if err != nil {
 		return err
 	}
-	chats, err := allChats(env, lists)
-	if err != nil {
-		return err
-	}
+
 	total := len(chats)
 	if limit > 0 && total > limit {
 		chats = chats[:limit]
@@ -173,18 +180,14 @@ func ago(t, now time.Time) string {
 	return i18n.Ago(t, now)
 }
 
-// allChats reads the chats of every list given, newest first.
-func allChats(env *ops.Env, lists []ops.List) ([]ops.Chat, error) {
+// flattenChats combines one request's groups in newest-first order.
+func flattenChats(groups [][]ops.Chat) []ops.Chat {
 	var out []ops.Chat
-	for _, l := range lists {
-		chats, err := env.Chats(l)
-		if err != nil {
-			return nil, err
-		}
+	for _, chats := range groups {
 		out = append(out, chats...)
 	}
 	slices.SortStableFunc(out, func(x, y ops.Chat) int { return y.Last.Compare(x.Last) })
-	return out, nil
+	return out
 }
 
 // transfer is copy, or move when move is set.
