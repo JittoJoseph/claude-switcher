@@ -169,13 +169,13 @@ rm -f ~/.local/bin/claude-switcher
 For a specific release on Windows:
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1))) -Version v3.0.1
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.ps1))) -Version v3.0.2
 ```
 
 For a specific release on macOS or Linux:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | CLAUDE_SWITCHER_VERSION=v3.0.1 sh
+curl -fsSL https://raw.githubusercontent.com/JittoJoseph/claude-switcher/main/install.sh | CLAUDE_SWITCHER_VERSION=v3.0.2 sh
 ```
 
 ## Commands
