@@ -34,6 +34,9 @@ type Build struct{ Version, Commit, Date string }
 
 // Execute runs the command line on the process's arguments and returns the exit code.
 func Execute(b Build) int {
+	// Explorer already gives this console executable a terminal. Cobra's default
+	// Windows splash would intercept the launch before our interactive app runs.
+	cobra.MousetrapHelpText = ""
 	return run(context.Background(), b, os.Args[1:], os.Stdin, os.Stdout, os.Stderr)
 }
 
